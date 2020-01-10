@@ -4,6 +4,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sound/flutter_sound.dart';
 
 class AnimatedListSample extends StatefulWidget {
   @override
@@ -15,6 +16,8 @@ class _AnimatedListSampleState extends State<AnimatedListSample> {
   ListModel<int> _list;
   int _selectedItem;
   int _nextItem; // The next item inserted when the user presses the '+' button.
+
+  FlutterSound flutterSound = new FlutterSound();
 
   @override
   void initState() {
@@ -76,6 +79,7 @@ class _AnimatedListSampleState extends State<AnimatedListSample> {
 
   @override
   Widget build(BuildContext context) {
+    print("asd");
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
@@ -189,18 +193,17 @@ class CardItem extends StatelessWidget {
           behavior: HitTestBehavior.opaque,
           onTap: onTap,
           child: SizedBox(
-            height: 60,
+            height: selected ? 120 : 60,
             child: Card(
               color: Colors.grey[200],
               child: Center(
-                child: FractionallySizedBox(
-                  widthFactor: 0.9,
-                  heightFactor: 0.5,
-                  child: Row(children: [
-                    Expanded(
-                      flex: 1,
-                      child: Align(
-                        alignment: Alignment.centerLeft,
+                child: Column(children: [
+                  Expanded(
+                    flex: 1,
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: Container(
+                        margin: EdgeInsets.only(top: 10, left: 10),
                         child: Text(
                           'Item $item',
                           style: TextStyle(
@@ -209,20 +212,15 @@ class CardItem extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Expanded(
-                      flex: 1,
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          'Buttons here',
-                          style: TextStyle(
-                            fontSize: 20,
-                          ),
-                        ),
-                      ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Opacity(
+                      opacity: selected ? 1 : 0,
+                      child: Text("asd"),
                     ),
-                  ]),
-                ),
+                  )
+                ]),
               ),
             ),
           ),

@@ -4,20 +4,17 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_sound/flutter_sound.dart';
 
-class AnimatedListSample extends StatefulWidget {
+class Harmonizer extends StatefulWidget {
   @override
-  _AnimatedListSampleState createState() => _AnimatedListSampleState();
+  _HarmonizerState createState() => _HarmonizerState();
 }
 
-class _AnimatedListSampleState extends State<AnimatedListSample> {
+class _HarmonizerState extends State<Harmonizer> {
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
   ListModel<int> _list;
   int _selectedItem;
   int _nextItem; // The next item inserted when the user presses the '+' button.
-
-  FlutterSound flutterSound = new FlutterSound();
 
   @override
   void initState() {
@@ -79,7 +76,6 @@ class _AnimatedListSampleState extends State<AnimatedListSample> {
 
   @override
   Widget build(BuildContext context) {
-    print("asd");
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
@@ -97,12 +93,14 @@ class _AnimatedListSampleState extends State<AnimatedListSample> {
             ),
           ],
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: AnimatedList(
-            key: _listKey,
-            initialItemCount: _list.length,
-            itemBuilder: _buildItem,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: AnimatedList(
+              key: _listKey,
+              initialItemCount: _list.length,
+              itemBuilder: _buildItem,
+            ),
           ),
         ),
       ),
@@ -184,43 +182,64 @@ class CardItem extends StatelessWidget {
     // if (selected)
     //   textStyle =
     //       textStyle.copyWith(color: Colors.lightGreenAccent[400]);
-    return Padding(
-      padding: const EdgeInsets.all(0.5),
-      child: SizeTransition(
-        axis: Axis.vertical,
-        sizeFactor: animation,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: onTap,
-          child: SizedBox(
-            height: selected ? 120 : 60,
-            child: Card(
-              color: Colors.grey[200],
-              child: Center(
-                child: Column(children: [
-                  Expanded(
-                    flex: 1,
-                    child: Align(
-                      alignment: Alignment.topLeft,
-                      child: Container(
-                        margin: EdgeInsets.only(top: 10, left: 10),
-                        child: Text(
-                          'Item $item',
-                          style: TextStyle(
-                            fontSize: 20,
-                          ),
+    return SizeTransition(
+      axis: Axis.vertical,
+      sizeFactor: animation,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox(
+          height: selected ? 110 : 60,
+          child: Card(
+            color: Colors.grey[200],
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text(
+                        "제목",
+                        style: TextStyle(
+                          fontSize: 15.0,
                         ),
                       ),
-                    ),
+                      Text(
+                        "2020/01/02",
+                        style: TextStyle(
+                          fontSize: 15.0,
+                        ),
+                      ),
+                    ],
                   ),
-                  Expanded(
-                    flex: 1,
-                    child: Opacity(
-                      opacity: selected ? 1 : 0,
-                      child: Text("asd"),
-                    ),
-                  )
-                ]),
+                  selected
+                      ? (Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: <Widget>[
+                            FlatButton(
+                              child: Icon(Icons.play_arrow),
+                              onPressed: () {
+                                print("play");
+                              },
+                            ),
+                            FlatButton(
+                              child: Icon(Icons.pause),
+                              onPressed: () {
+                                print("pause");
+                              },
+                            ),
+                            FlatButton(
+                              child: Icon(Icons.stop),
+                              onPressed: () {
+                                print("stop");
+                              },
+                            ),
+                          ],
+                        ))
+                      : Container(),
+                ],
               ),
             ),
           ),
@@ -230,6 +249,17 @@ class CardItem extends StatelessWidget {
   }
 }
 
+// ListTile(
+//                 leading: Text(
+//                   "2020/01/02",
+//                   style: TextStyle(fontSize: 15.0),
+//                 ),
+//                 title: Text(
+//                   "Hello",
+//                   style: TextStyle(fontSize: 15.0),
+//                 ),
+//               ),
+
 void main() {
-  runApp(AnimatedListSample());
+  runApp(Harmonizer());
 }

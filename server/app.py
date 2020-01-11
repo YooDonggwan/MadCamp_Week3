@@ -34,10 +34,9 @@ def get_wav():
         y, sr = librosa.load(secure_filename(f.filename))
         # y_third_orig = librosa.effects.pitch_shift(y, sr, n_steps=-4)
         # y_t = apicall.butter_bandpass_filter(y, 200.0, 400.0, sr, order=3)
-        y_test = np.zeros(len(y))
-        y_third = librosa.effects.pitch_shift(y, sr, n_steps=get_key1)
+        y_third = librosa.effects.pitch_shift(y, sr, n_steps=4)
         y_fifth = librosa.effects.pitch_shift(y, sr, n_steps=get_key2)
-        #librosa.output.write_wav('orig.wav', (y_third_orig), sr)
+        #librosa.output.write_cd wav('orig.wav', (y_third_orig), sr)
         librosa.output.write_wav('third.wav', y + y_third, sr)
         # librosa.output.write_wav('out.wav', y, sr)
         # librosa.output.write_wav('out.wav', y_third, sr)
@@ -50,6 +49,6 @@ def get_wav():
 
 
 if __name__ =='__main__':
-    app.run(debug = True, host = '0.0.0.0', port = 7080)
+    app.run(debug = True, host = '0.0.0.0', port = 7081)
     # app.run(debug = True, port = 4001)
     # app.run()

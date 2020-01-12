@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
-import './recorder_screen.dart';
+import 'package:mindonglody/home_screen.dart';
+import 'package:mindonglody/recorder_screen.dart';
 
 void main() => runApp(MainScreen());
 

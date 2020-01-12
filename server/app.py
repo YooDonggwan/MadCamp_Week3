@@ -1,5 +1,4 @@
-from flask import Flask, request
-import apicall
+from flask import Flask, request, render_template, send_from_directory
 import librosa
 import numpy as np
 from werkzeug import secure_filename
@@ -8,9 +7,11 @@ from scipy.signal import butter, lfilter, freqz
 
 app = Flask(__name__)
 
-@app.route('/')
-def hello():
-    return "Hello minsu"
+@app.route('/sound/<filename>', methods=['GET', 'POST'])
+def download_file(filename):
+    # filename = request.args.get('filename', "third.wav")
+    print(filename)
+    return send_from_directory("/home/dbehdrhks/mindonglody/sound/", filename)
 
 @app.route('/pitch_shift', methods=['GET','POST'])
 def get_wav():
@@ -25,19 +26,21 @@ def get_wav():
         get_key1 = request.form.get("key1")
         get_key2 = request.form.get("key2")
         f = request.files['file']
-        filePath = "./" + secure_filename(f.filename)
-        f.save(filePath)
+        # filePath = "./" + secure_filename(f.filename)
+        # f.save(filePath)
 
+        print("1111")
+        print(get_key1)
         # start~end 파일 잘라서 load에 넣기
         # 화음 종류 선택할 수 있게 하기? - for문 돌려서 리스트에 넣을 수 있게
         
-        y, sr = librosa.load(secure_filename(f.filename))
+        y, sr = librosa.load(f)
         # y_third_orig = librosa.effects.pitch_shift(y, sr, n_steps=-4)
         # y_t = apicall.butter_bandpass_filter(y, 200.0, 400.0, sr, order=3)
-        y_third = librosa.effects.pitch_shift(y, sr, n_steps=4)
+        y_third = librosa.effects.pitch_shift(y, sr, n_steps=get_key1)
         y_fifth = librosa.effects.pitch_shift(y, sr, n_steps=get_key2)
         #librosa.output.write_cd wav('orig.wav', (y_third_orig), sr)
-        librosa.output.write_wav('third.wav', y + y_third, sr)
+        librosa.output.write_wav('../sound/' + f.filename + '.wav', y + y_third, sr)
         # librosa.output.write_wav('out.wav', y, sr)
         # librosa.output.write_wav('out.wav', y_third, sr)
         return "success"

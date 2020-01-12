@@ -159,7 +159,7 @@ class _RecorderScreenState extends State<RecorderScreen> {
                 ),
                 onPressed: (() {
                   _stop();
-                  Navigator.pop(context, true);
+                  Navigator.pop(context);
                 }),
               ),
             ],

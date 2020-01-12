@@ -1,11 +1,14 @@
 import 'dart:io' as io;
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:file/local.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_audio_recorder/flutter_audio_recorder.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:file/file.dart';
+import 'package:http/http.dart' as http;
+
 
 class RecorderScreen extends StatefulWidget {
   static const String id = 'recorder_screen';
@@ -22,6 +25,7 @@ class _RecorderScreenState extends State<RecorderScreen> {
   FlutterAudioRecorder _recorder;
   Recording _current;
   RecordingStatus _currentStatus = RecordingStatus.Unset;
+  String mSound; // sound 파일 담을 곳
 
   @override
   void initState() {
@@ -92,6 +96,7 @@ class _RecorderScreenState extends State<RecorderScreen> {
           _currentStatus = _current.status;
         });
       });
+      
     } catch (e) {
       print(e);
     }
@@ -107,8 +112,12 @@ class _RecorderScreenState extends State<RecorderScreen> {
     setState(() {});
   }
 
+  final gServerIp = 'http://34.84.158.57:7081'; // 서버 주소
+
   _stop() async {
     var result = await _recorder.stop();
+    var server_addr = gServerIp + "/pitch_shift";
+    
     print("Stop recording: ${result.path}");
     print("Stop recording: ${result.duration}");
     File file = widget.localFileSystem.file(result.path);
@@ -117,7 +126,36 @@ class _RecorderScreenState extends State<RecorderScreen> {
       _current = result;
       _currentStatus = _current.status;
     });
+    
+    var request = http.MultipartRequest('POST', Uri.parse(server_addr))
+      ..fields['method'] = 'PUT'
+      ..fields['key1'] = '3'
+      ..fields['key2'] = '5'
+      ..files.add(await http.MultipartFile.fromPath('file', result.path));
+      
+    var response = await request.send();
+    // var response = await http.post(server_addr, 
+    //   body: {'method':"PUT", 'key1': "3", 'key2': "5", 'file': result});
+    // var response = await http.post(server_addr, body: map);
+
+
+    print("11111111111111");
+    print(file);
+
+    if(response.statusCode == 200){
+      print('Uploaded!');
+    }
+    throw Exception('post failed');
+
   }
+
+  // //////////////
+  // Future<String>postReply() async{
+  //   if(mSound == null){
+  //     return '';
+  //   }
+  // }
+  // ////////////////
 
   @override
   Widget build(BuildContext context) {
@@ -159,7 +197,7 @@ class _RecorderScreenState extends State<RecorderScreen> {
                 ),
                 onPressed: (() {
                   _stop();
-                  Navigator.pop(context, true);
+                  Navigator.pop(context, true); //navigator로 화면 이동
                 }),
               ),
             ],
@@ -176,6 +214,7 @@ class _RecorderScreenState extends State<RecorderScreen> {
     );
   }
 }
+
 
 // import 'dart:async';
 // import 'dart:io' as io;

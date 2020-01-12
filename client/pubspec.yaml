@@ -1,5 +1,5 @@
 name: mindonglody
-description: A new Flutter project.
+description: Algorithm based harmonizer
 version: 1.0.0+1
 
 environment:
@@ -12,6 +12,8 @@ dependencies:
   flutter_audio_recorder: ^0.5.5
   audioplayers: ^0.13.7
   path_provider: ^1.5.1
+  file: ^5.0.4
+  http: ^0.12.0+1
 
 dev_dependencies:
   flutter_test:

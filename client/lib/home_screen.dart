@@ -50,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return ListTile(
           title: Text(fileList[index]),
           selected: selectedItem == index,
-          onTap: () {
+          onTap: () { // 클릭 가능하게 ?
             setState(() {
               selectedItem = (selectedItem == index) ? null : index;
             });

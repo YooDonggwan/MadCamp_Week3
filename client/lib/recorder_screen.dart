@@ -56,7 +56,7 @@ class _RecorderScreenState extends State<RecorderScreen> {
               child: Text("취소"),
               onPressed: () {
                 setState(() {
-                  audioFile.name = name + ".wav";
+                  audioFile.name = name;
                 });
                 print(audioFile.name);
                 Navigator.of(context).pop(audioFile);
@@ -78,7 +78,9 @@ class _RecorderScreenState extends State<RecorderScreen> {
     try {
       if (await FlutterAudioRecorder.hasPermissions) {
         setState(() {
-          name = '새로운 녹음_' + DateTime.now().millisecondsSinceEpoch.toString();
+          name = 'audio_' +
+              DateTime.now().millisecondsSinceEpoch.toString() +
+              '.wav';
           audioFile.name = name;
         });
         io.Directory appDocDirectory;
@@ -158,7 +160,6 @@ class _RecorderScreenState extends State<RecorderScreen> {
 
   _stop() async {
     var result = await _recorder.stop();
-    var serverAddr = gServerIp + "/pitch_shift";
 
     print("Stop recording: ${result.path}");
     print("Stop recording: ${result.duration}");
@@ -175,6 +176,12 @@ class _RecorderScreenState extends State<RecorderScreen> {
 
     await _showDialog();
 
+    await _postRequest(result);
+  }
+
+  _postRequest(var result) async {
+    var serverAddr = gServerIp + "/pitch_shift";
+
     var request = http.MultipartRequest('POST', Uri.parse(serverAddr))
       ..fields['method'] = 'PUT'
       ..fields['key1'] = '3'
@@ -186,7 +193,6 @@ class _RecorderScreenState extends State<RecorderScreen> {
     if (response.statusCode == 200) {
       print('Uploaded!');
     }
-    throw Exception('post failed');
   }
 
   @override

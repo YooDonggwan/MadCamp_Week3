@@ -286,7 +286,17 @@ class _HomeScreenState extends State<HomeScreen> {
               Icons.add_circle_outline,
               size: 30.0,
             ),
-            onPressed: () => Navigator.pushNamed(context, RecorderScreen.id),
+            onPressed: () async {
+              AudioFile audioFile = await Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => RecorderScreen()));
+              // print("Test: ${audioFile.name}");
+              // print("Test: ${audioFile.path}");
+              // print("Test: ${audioFile.position}");
+              // print("Test: ${audioFile.duration}");
+              setState(() {
+                audioFiles.add(audioFile);
+              });
+            },
           ),
           IconButton(
             icon: Icon(

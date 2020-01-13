@@ -26,8 +26,8 @@ class _RecorderScreenState extends State<RecorderScreen> {
   Recording _current;
   RecordingStatus _currentStatus = RecordingStatus.Unset;
   String mSound; // sound 파일 담을 곳
-  int number; // default name counter
   AudioFile audioFile = new AudioFile();
+  String name = "";
 
   @override
   void initState() {
@@ -35,10 +35,50 @@ class _RecorderScreenState extends State<RecorderScreen> {
     _init();
   }
 
+  void _showDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("녹음 저장"),
+          content: TextField(
+            decoration: InputDecoration(
+              hintText: "녹음 파일 이름",
+            ),
+            onChanged: (text) {
+              setState(() {
+                audioFile.name = text + ".wav";
+              });
+            },
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text("취소"),
+              onPressed: () {
+                setState(() {
+                  audioFile.name = name + ".wav";
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+            FlatButton(
+              child: Text("확인"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            )
+          ],
+        );
+      },
+    );
+  }
+
   _init() async {
     try {
       if (await FlutterAudioRecorder.hasPermissions) {
-        audioFile.name = '새로운 녹음';
+        setState(() {
+          name = '새로운 녹음_' + DateTime.now().millisecondsSinceEpoch.toString();
+        });
         io.Directory appDocDirectory;
 //        io.Directory appDocDirectory = await getApplicationDocumentsDirectory();
         if (io.Platform.isIOS) {
@@ -48,14 +88,11 @@ class _RecorderScreenState extends State<RecorderScreen> {
         }
 
         // can add extension like ".mp4" ".wav" ".m4a" ".aac"
-        audioFile.path = appDocDirectory.path + '/original/';
-        //DateTime.now().millisecondsSinceEpoch.toString();
-
+        audioFile.path = appDocDirectory.path;
         // .wav <---> AudioFormat.WAV
         // .mp4 .m4a .aac <---> AudioFormat.AAC
         // AudioFormat is optional, if given value, will overwrite path extension when there is conflicts.
-        _recorder = FlutterAudioRecorder(
-            audioFile.path + audioFile.name + number.toString(),
+        _recorder = FlutterAudioRecorder(audioFile.path + '/' + name,
             audioFormat: AudioFormat.WAV);
 
         await _recorder.initialized;
@@ -65,11 +102,13 @@ class _RecorderScreenState extends State<RecorderScreen> {
         setState(() {
           _current = current;
           _currentStatus = current.status;
-          print(_currentStatus);
         });
       } else {
         Scaffold.of(context).showSnackBar(
-            SnackBar(content: Text("You must accept permissions")));
+          SnackBar(
+            content: Text("You must accept permissions"),
+          ),
+        );
       }
     } catch (e) {
       print(e);
@@ -102,24 +141,27 @@ class _RecorderScreenState extends State<RecorderScreen> {
     }
   }
 
-  _resume() async {
-    await _recorder.resume();
-    setState(() {});
-  }
+  // _resume() async {
+  //   await _recorder.resume();
+  //   setState(() {});
+  // }
 
-  _pause() async {
-    await _recorder.pause();
-    setState(() {});
-  }
+  // _pause() async {
+  //   await _recorder.pause();
+  //   setState(() {});
+  // }
 
   final gServerIp = 'http://34.84.158.57:7081'; // 서버 주소
 
   _stop() async {
     var result = await _recorder.stop();
-    var server_addr = gServerIp + "/pitch_shift";
+    var serverAddr = gServerIp + "/pitch_shift";
+
+    _showDialog();
 
     print("Stop recording: ${result.path}");
     print("Stop recording: ${result.duration}");
+    audioFile.duration = result.duration;
     File file = widget.localFileSystem.file(result.path);
     print("File length: ${await file.length()}");
     setState(() {
@@ -127,7 +169,7 @@ class _RecorderScreenState extends State<RecorderScreen> {
       _currentStatus = _current.status;
     });
 
-    var request = http.MultipartRequest('POST', Uri.parse(server_addr))
+    var request = http.MultipartRequest('POST', Uri.parse(serverAddr))
       ..fields['method'] = 'PUT'
       ..fields['key1'] = '3'
       ..fields['key2'] = '5'
@@ -137,9 +179,6 @@ class _RecorderScreenState extends State<RecorderScreen> {
     // var response = await http.post(server_addr,
     //   body: {'method':"PUT", 'key1': "3", 'key2': "5", 'file': result});
     // var response = await http.post(server_addr, body: map);
-
-    print("11111111111111");
-    print(file);
 
     if (response.statusCode == 200) {
       print('Uploaded!');
@@ -193,9 +232,13 @@ class _RecorderScreenState extends State<RecorderScreen> {
                   color: Colors.black54,
                   size: 100.0,
                 ),
-                onPressed: (() {
-                  _stop();
-                  Navigator.pop(context);
+                onPressed: (() async {
+                  await _stop();
+                  print("Test: ${audioFile.name}");
+                  print("Test: ${audioFile.path}");
+                  print("Test: ${audioFile.position}");
+                  print("Test: ${audioFile.duration}");
+                  Navigator.pop(context, audioFile);
                 }),
               ),
             ],

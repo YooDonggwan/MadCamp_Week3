@@ -142,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   _play() async {
     int result = await audioPlayer
-        .play(audioFiles[selectedItem].path + audioFiles[selectedItem].name);
+        .play(audioFiles[selectedItem].path + audioFiles[selectedItem].name); //여기에 사운드 주소 넣으면 될듯
     if (result == 1) {
       // success
     }

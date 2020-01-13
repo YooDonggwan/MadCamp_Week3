@@ -58,13 +58,14 @@ class _RecorderScreenState extends State<RecorderScreen> {
                 setState(() {
                   audioFile.name = name + ".wav";
                 });
-                Navigator.of(context).pop();
+                print(audioFile.name);
+                Navigator.of(context).pop(audioFile);
               },
             ),
             FlatButton(
               child: Text("확인"),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(audioFile);
               },
             )
           ],
@@ -159,18 +160,18 @@ class _RecorderScreenState extends State<RecorderScreen> {
     var result = await _recorder.stop();
     var serverAddr = gServerIp + "/pitch_shift";
 
-    await _showDialog();
-
-    // print("Stop recording: ${result.path}");
-    // print("Stop recording: ${result.duration}");
+    print("Stop recording: ${result.path}");
+    print("Stop recording: ${result.duration}");
     audioFile.duration = result.duration;
-    // File file = widget.localFileSystem.file(result.path);
-    // print("File length: ${await file.length()}");
+    File file = widget.localFileSystem.file(result.path);
+    print("File length: ${await file.length()}");
     setState(() {
       _current = result;
       _currentStatus = _current.status;
     });
-/*
+
+    await _showDialog();
+
     var request = http.MultipartRequest('POST', Uri.parse(serverAddr))
       ..fields['method'] = 'PUT'
       ..fields['key1'] = '3'
@@ -186,7 +187,7 @@ class _RecorderScreenState extends State<RecorderScreen> {
       print('Uploaded!');
     }
     throw Exception('post failed');
-*/
+
   }
 
   // //////////////
@@ -201,7 +202,11 @@ class _RecorderScreenState extends State<RecorderScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Record Room'),
+        leading: new IconButton(
+          icon: new Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(audioFile),
+        ),
+        title: Text('Record Room')
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -237,11 +242,12 @@ class _RecorderScreenState extends State<RecorderScreen> {
                 ),
                 onPressed: (() async {
                   await _stop();
+                  await _showDialog();////////
                   print("Test: ${audioFile.name}");
                   print("Test: ${audioFile.path}");
                   print("Test: ${audioFile.position}");
                   print("Test: ${audioFile.duration}");
-                  Navigator.pop(context, audioFile);
+                  Navigator.of(context).pop(audioFile);
                 }),
               ),
             ],

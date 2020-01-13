@@ -2,6 +2,7 @@ import 'dart:io' as io;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:mindonglody/home_screen.dart';
 import 'package:file/local.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_audio_recorder/flutter_audio_recorder.dart';
@@ -25,6 +26,8 @@ class _RecorderScreenState extends State<RecorderScreen> {
   Recording _current;
   RecordingStatus _currentStatus = RecordingStatus.Unset;
   String mSound; // sound 파일 담을 곳
+  int number; // default name counter
+  AudioFile audioFile = new AudioFile();
 
   @override
   void initState() {
@@ -35,7 +38,7 @@ class _RecorderScreenState extends State<RecorderScreen> {
   _init() async {
     try {
       if (await FlutterAudioRecorder.hasPermissions) {
-        String customPath = '/flutter_audio_recorder_';
+        audioFile.name = '새로운 녹음';
         io.Directory appDocDirectory;
 //        io.Directory appDocDirectory = await getApplicationDocumentsDirectory();
         if (io.Platform.isIOS) {
@@ -45,20 +48,19 @@ class _RecorderScreenState extends State<RecorderScreen> {
         }
 
         // can add extension like ".mp4" ".wav" ".m4a" ".aac"
-        customPath = appDocDirectory.path +
-            customPath +
-            DateTime.now().millisecondsSinceEpoch.toString();
+        audioFile.path = appDocDirectory.path + '/original/';
+        //DateTime.now().millisecondsSinceEpoch.toString();
 
         // .wav <---> AudioFormat.WAV
         // .mp4 .m4a .aac <---> AudioFormat.AAC
         // AudioFormat is optional, if given value, will overwrite path extension when there is conflicts.
-        _recorder =
-            FlutterAudioRecorder(customPath, audioFormat: AudioFormat.WAV);
+        _recorder = FlutterAudioRecorder(
+            audioFile.path + audioFile.name + number.toString(),
+            audioFormat: AudioFormat.WAV);
 
         await _recorder.initialized;
         // after initialization
         var current = await _recorder.current(channel: 0);
-        print(current);
         // should be "Initialized", if all working fine
         setState(() {
           _current = current;

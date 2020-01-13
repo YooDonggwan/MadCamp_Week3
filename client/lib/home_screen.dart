@@ -4,6 +4,55 @@ import 'package:mindonglody/recorder_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:percent_indicator/linear_percent_indicator.dart';
+
+class AudioFile {
+  String filePath;
+  String fileName;
+  String fileDate;
+  Duration fileDuration;
+  Duration filePosition;
+
+  String get path {
+    return filePath;
+  }
+
+  String get name {
+    return fileName;
+  }
+
+  String get date {
+    return fileDate;
+  }
+
+  Duration get duration {
+    return fileDuration;
+  }
+
+  Duration get position {
+    return filePosition;
+  }
+
+  set path(String path) {
+    this.filePath = path;
+  }
+
+  set name(String name) {
+    this.fileName = name;
+  }
+
+  set date(String date) {
+    this.fileDate = date;
+  }
+
+  set duration(Duration duration) {
+    this.fileDuration = duration;
+  }
+
+  set position(Duration position) {
+    this.filePosition = position;
+  }
+}
 
 class HomeScreen extends StatefulWidget {
   static const String id = 'home_screen';
@@ -13,17 +62,24 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<String> fileList = [];
+  List<AudioFile> audioFiles = [];
   bool isLoading = true;
+  bool isStopped = false;
   // bool reallyDelete = false;
   int selectedItem;
   AudioPlayer audioPlayer = AudioPlayer();
-  Duration d;
 
   @override
   void initState() {
     super.initState();
     _getFiles();
+
+    audioPlayer.onDurationChanged.listen((Duration d) {
+      setState(() => audioFiles[selectedItem].duration = d);
+    });
+    audioPlayer.onAudioPositionChanged.listen((Duration p) {
+      setState(() => audioFiles[selectedItem].position = p);
+    });
   }
 
   void _getFiles() async {
@@ -35,9 +91,20 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     await dir.list(recursive: false).forEach((f) {
-      fileList.add(f.path);
-    });
+      AudioFile audioFile = new AudioFile();
+      var path = f.path.split('/');
+      audioFile.path =
+          path.sublist(0, path.length - 1).reduce((acc, e) => acc + '/' + e) +
+              '/';
+      audioFile.name = path[path.length - 1];
+      audioFile.date =
+          io.File(f.path).statSync().changed.toString().split(' ')[0];
+      audioFile.duration =
+          Duration(seconds: io.File(f.path).statSync().size ~/ 32000);
+      audioFile.position = new Duration(seconds: 0);
 
+      audioFiles.add(audioFile);
+    });
     setState(() {
       isLoading = false;
     });
@@ -45,19 +112,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   ListView _buildList() {
     return ListView.separated(
-      itemCount: fileList.length,
+      itemCount: audioFiles.length,
       separatorBuilder: (BuildContext context, int index) =>
           Divider(color: Colors.grey),
       itemBuilder: (BuildContext context, int index) {
-        String milliseconds = fileList[index].split(new RegExp('[./_]'))[13];
-        String date =
-            DateTime.fromMillisecondsSinceEpoch(int.parse(milliseconds))
-                .toString()
-                .split(' ')[0];
-
         return ListTile(
-          title: Text(fileList[index].split('/')[8]),
-          subtitle: Text(date),
+          title: Text(audioFiles[index].name),
+          subtitle: Text(audioFiles[index].date),
           selected: selectedItem == index,
           onTap: () {
             setState(() {
@@ -71,16 +132,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _removeItem() {
     if (selectedItem != null) {
-      io.Directory(fileList[selectedItem]).deleteSync(recursive: true);
+      io.Directory(audioFiles[selectedItem].path).deleteSync(recursive: true);
       setState(() {
-        fileList.removeAt(selectedItem);
+        audioFiles.removeAt(selectedItem);
         selectedItem = null;
       });
     }
   }
 
   _play() async {
-    int result = await audioPlayer.play(fileList[selectedItem]);
+    int result = await audioPlayer
+        .play(audioFiles[selectedItem].path + audioFiles[selectedItem].name);
     if (result == 1) {
       // success
     }
@@ -90,6 +152,9 @@ class _HomeScreenState extends State<HomeScreen> {
     int result = await audioPlayer.pause();
     if (result == 1) {
       // success
+      setState(() {
+        isStopped = true;
+      });
     }
   }
 
@@ -97,6 +162,29 @@ class _HomeScreenState extends State<HomeScreen> {
     int result = await audioPlayer.stop();
     if (result == 1) {
       // success
+      setState(() {
+        audioFiles[selectedItem].position = new Duration(seconds: 0);
+      });
+    }
+  }
+
+  _resume() async {
+    int result = await audioPlayer.resume();
+    if (result == 1) {
+      // success
+      setState(() {
+        isStopped = false;
+      });
+    }
+  }
+
+  String sDuration(Duration duration) {
+    if (duration == null) {
+      return "00:00";
+    } else {
+      var minute = duration.inMinutes.remainder(60);
+      var second = duration.inSeconds.remainder(60);
+      return "${minute >= 10 ? minute : '0' + minute.toString()}:${second >= 10 ? second : '0' + second.toString()}";
     }
   }
 
@@ -111,42 +199,77 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           selectedItem == null
               ? Container()
-              : Container(
-                  color: Colors.grey[300],
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: <Widget>[
-                      FlatButton(
-                        child: Icon(
-                          Icons.play_arrow,
-                          size: 40.0,
-                        ),
-                        onPressed: () {
-                          _play();
-                        },
+              : Column(
+                  children: <Widget>[
+                    Container(
+                      child: Column(
+                        children: <Widget>[
+                          LinearPercentIndicator(
+                            lineHeight: 5.0,
+                            percent: (audioFiles[selectedItem]
+                                    .position
+                                    .inSeconds) /
+                                (audioFiles[selectedItem].duration.inSeconds),
+                            progressColor: Colors.blue,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              Text(
+                                "${sDuration(audioFiles[selectedItem].position)}",
+                                style: TextStyle(
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                              Text(
+                                "${sDuration(audioFiles[selectedItem].duration)}",
+                                style: TextStyle(
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      FlatButton(
-                        child: Icon(
-                          Icons.pause,
-                          size: 40.0,
-                        ),
-                        onPressed: () {
-                          _pause();
-                        },
+                    ),
+                    Container(
+                      color: Colors.grey[300],
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: <Widget>[
+                          FlatButton(
+                            child: Icon(
+                              Icons.play_arrow,
+                              size: 40.0,
+                            ),
+                            onPressed: () {
+                              isStopped ? _resume() : _play();
+                            },
+                          ),
+                          FlatButton(
+                            child: Icon(
+                              Icons.pause,
+                              size: 40.0,
+                            ),
+                            onPressed: () {
+                              _pause();
+                            },
+                          ),
+                          FlatButton(
+                            child: Icon(
+                              Icons.stop,
+                              size: 40.0,
+                            ),
+                            onPressed: () {
+                              _stop();
+                            },
+                          ),
+                        ],
                       ),
-                      FlatButton(
-                        child: Icon(
-                          Icons.stop,
-                          size: 40.0,
-                        ),
-                        onPressed: () {
-                          _stop();
-                        },
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                  ],
+                )
         ],
       );
     }

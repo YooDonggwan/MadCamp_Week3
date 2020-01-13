@@ -35,7 +35,7 @@ class _RecorderScreenState extends State<RecorderScreen> {
     _init();
   }
 
-  void _showDialog() {
+  _showDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -78,6 +78,7 @@ class _RecorderScreenState extends State<RecorderScreen> {
       if (await FlutterAudioRecorder.hasPermissions) {
         setState(() {
           name = '새로운 녹음_' + DateTime.now().millisecondsSinceEpoch.toString();
+          audioFile.name = name;
         });
         io.Directory appDocDirectory;
 //        io.Directory appDocDirectory = await getApplicationDocumentsDirectory();
@@ -89,6 +90,7 @@ class _RecorderScreenState extends State<RecorderScreen> {
 
         // can add extension like ".mp4" ".wav" ".m4a" ".aac"
         audioFile.path = appDocDirectory.path;
+        audioFile.position = new Duration(seconds: 0);
         // .wav <---> AudioFormat.WAV
         // .mp4 .m4a .aac <---> AudioFormat.AAC
         // AudioFormat is optional, if given value, will overwrite path extension when there is conflicts.
@@ -157,18 +159,18 @@ class _RecorderScreenState extends State<RecorderScreen> {
     var result = await _recorder.stop();
     var serverAddr = gServerIp + "/pitch_shift";
 
-    _showDialog();
+    await _showDialog();
 
-    print("Stop recording: ${result.path}");
-    print("Stop recording: ${result.duration}");
+    // print("Stop recording: ${result.path}");
+    // print("Stop recording: ${result.duration}");
     audioFile.duration = result.duration;
-    File file = widget.localFileSystem.file(result.path);
-    print("File length: ${await file.length()}");
+    // File file = widget.localFileSystem.file(result.path);
+    // print("File length: ${await file.length()}");
     setState(() {
       _current = result;
       _currentStatus = _current.status;
     });
-
+/*
     var request = http.MultipartRequest('POST', Uri.parse(serverAddr))
       ..fields['method'] = 'PUT'
       ..fields['key1'] = '3'
@@ -184,6 +186,7 @@ class _RecorderScreenState extends State<RecorderScreen> {
       print('Uploaded!');
     }
     throw Exception('post failed');
+*/
   }
 
   // //////////////

@@ -287,8 +287,11 @@ class _HomeScreenState extends State<HomeScreen> {
               size: 30.0,
             ),
             onPressed: () async {
-              AudioFile audioFile = await Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => RecorderScreen()));
+              var audioFile = await Navigator.pushNamed(
+                context,
+                RecorderScreen.id,
+              );
+              print(audioFile);
               // print("Test: ${audioFile.name}");
               // print("Test: ${audioFile.path}");
               // print("Test: ${audioFile.position}");

@@ -40,7 +40,7 @@ def get_wav():
         y_third = librosa.effects.pitch_shift(y, sr, n_steps=get_key1)
         y_fifth = librosa.effects.pitch_shift(y, sr, n_steps=get_key2)
         #librosa.output.write_cd wav('orig.wav', (y_third_orig), sr)
-        librosa.output.write_wav('../sound/' + f.filename + '.wav', y + y_third, sr)
+        librosa.output.write_wav('../sound/' + f.filename, y + y_third, sr)
         # librosa.output.write_wav('out.wav', y, sr)
         # librosa.output.write_wav('out.wav', y_third, sr)
         return "success"

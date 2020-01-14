@@ -184,8 +184,8 @@ class _RecorderScreenState extends State<RecorderScreen> {
 
     var request = http.MultipartRequest('POST', Uri.parse(serverAddr))
       ..fields['method'] = 'PUT'
-      ..fields['key1'] = '3'
-      ..fields['key2'] = '5'
+      ..fields['key1'] = '4'
+      ..fields['key2'] = '7'
       ..files.add(await http.MultipartFile.fromPath('file', result.path));
 
     var response = await request.send();

@@ -150,6 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   _play() async {
     int result = await audioPlayer.play(audioFiles[selectedItem].path +
+        '/' +
         audioFiles[selectedItem].name); //여기에 사운드 주소 넣으면 될듯
     if (result == 1) {
       // success
@@ -192,7 +193,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   _harmonized() async {
-    String endPoint = "http://34.84.158.57:4001/sound/";
+    String endPoint = "http://34.84.158.57:7081/sound/";
+    print(endPoint + audioFiles[selectedItem].name);
+    int result =
+        await audioPlayer.play(endPoint + audioFiles[selectedItem].name);
+    if (result == 1) {
+      // success
+    }
+  }
+
+  _harmonized2() async {
+    String endPoint = "http://34.84.158.57:7081/sound2/";
     print(endPoint + audioFiles[selectedItem].name);
     int result =
         await audioPlayer.play(endPoint + audioFiles[selectedItem].name);
@@ -266,7 +277,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               isStart
                                   ? Icons.play_arrow
                                   : isStopped ? Icons.play_arrow : Icons.pause,
-                              size: 40.0,
+                              size: 25.0,
                             ),
                             onPressed: () {
                               isStart
@@ -277,7 +288,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           FlatButton(
                             child: Icon(
                               Icons.stop,
-                              size: 40.0,
+                              size: 25.0,
                             ),
                             onPressed: () {
                               _stop();
@@ -286,10 +297,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           FlatButton(
                             child: Icon(
                               Icons.music_note,
-                              size: 40.0,
+                              size: 25.0,
                             ),
                             onPressed: () {
                               _harmonized();
+                            },
+                          ),
+                          FlatButton(
+                            child: Icon(Icons.library_music, size: 25.0),
+                            onPressed: () {
+                              _harmonized2();
                             },
                           ),
                         ],

@@ -64,10 +64,12 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<AudioFile> audioFiles = [];
   bool isLoading = true;
-  bool isStopped = false;
+  bool isStopped = true;
+  bool isStart = true;
   // bool reallyDelete = false;
   int selectedItem;
   AudioPlayer audioPlayer = AudioPlayer();
+  Duration d = new Duration();
 
   @override
   void initState() {
@@ -123,6 +125,9 @@ class _HomeScreenState extends State<HomeScreen> {
           onTap: () {
             setState(() {
               selectedItem = (selectedItem == index) ? null : index;
+              d = audioFiles[selectedItem].duration;
+              isStart = true;
+              isStopped = true;
             });
           },
         );
@@ -132,7 +137,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _removeItem() {
     if (selectedItem != null) {
-      io.Directory(audioFiles[selectedItem].path).deleteSync(recursive: true);
+      io.Directory(audioFiles[selectedItem].path +
+              '/' +
+              audioFiles[selectedItem].name)
+          .deleteSync(recursive: true);
       setState(() {
         audioFiles.removeAt(selectedItem);
         selectedItem = null;
@@ -141,10 +149,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   _play() async {
-    int result = await audioPlayer
-        .play(audioFiles[selectedItem].path + audioFiles[selectedItem].name); //여기에 사운드 주소 넣으면 될듯
+    int result = await audioPlayer.play(audioFiles[selectedItem].path +
+        audioFiles[selectedItem].name); //여기에 사운드 주소 넣으면 될듯
     if (result == 1) {
       // success
+      setState(() {
+        isStart = false;
+        isStopped = false;
+      });
     }
   }
 
@@ -163,6 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (result == 1) {
       // success
       setState(() {
+        isStart = true;
         audioFiles[selectedItem].position = new Duration(seconds: 0);
       });
     }
@@ -175,6 +188,16 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         isStopped = false;
       });
+    }
+  }
+
+  _harmonized() async {
+    String endPoint = "http://34.84.158.57:4001/sound/";
+    print(endPoint + audioFiles[selectedItem].name);
+    int result =
+        await audioPlayer.play(endPoint + audioFiles[selectedItem].name);
+    if (result == 1) {
+      // success
     }
   }
 
@@ -222,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               Text(
-                                "${sDuration(audioFiles[selectedItem].duration)}",
+                                "${sDuration(d)}",
                                 style: TextStyle(
                                   color: Colors.grey[700],
                                 ),
@@ -240,20 +263,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: <Widget>[
                           FlatButton(
                             child: Icon(
-                              Icons.play_arrow,
+                              isStart
+                                  ? Icons.play_arrow
+                                  : isStopped ? Icons.play_arrow : Icons.pause,
                               size: 40.0,
                             ),
                             onPressed: () {
-                              isStopped ? _resume() : _play();
-                            },
-                          ),
-                          FlatButton(
-                            child: Icon(
-                              Icons.pause,
-                              size: 40.0,
-                            ),
-                            onPressed: () {
-                              _pause();
+                              isStart
+                                  ? _play()
+                                  : isStopped ? _resume() : _pause();
                             },
                           ),
                           FlatButton(
@@ -263,6 +281,15 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             onPressed: () {
                               _stop();
+                            },
+                          ),
+                          FlatButton(
+                            child: Icon(
+                              Icons.music_note,
+                              size: 40.0,
+                            ),
+                            onPressed: () {
+                              _harmonized();
                             },
                           ),
                         ],
